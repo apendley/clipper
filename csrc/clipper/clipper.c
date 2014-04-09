@@ -1,5 +1,6 @@
 //go@ bash build-mingw32.sh
 //Clipper C wrapper by Cosmin Apreutesei (public domain)
+//Further modifications by Aaron Pendley
 #include <stdint.h>
 #include "clipper.cpp"
 
@@ -13,35 +14,35 @@ using namespace ClipperLib;
 
 // clipper_polygon class
 
-export Polygon* clipper_polygon_create(int n) {
+export Path* clipper_polygon_create(int n) {
 	try {
-		return new Polygon(n);
+		return new Path(n);
 	} catch(...) {
 		return 0;
 	}
 }
 
-export void clipper_polygon_free(Polygon* poly) {
+export void clipper_polygon_free(Path* poly) {
 	delete poly;
 }
 
-export int clipper_polygon_size(Polygon* poly) {
+export int clipper_polygon_size(Path* poly) {
 	return poly->size();
 }
 
-export IntPoint* clipper_polygon_get(Polygon* poly, int i) {
+export IntPoint* clipper_polygon_get(Path* poly, int i) {
 	return &((*poly)[i]);
 }
 
-export double clipper_polygon_get_real_x(Polygon* poly, int i) {
+export double clipper_polygon_get_real_x(Path* poly, int i) {
 	return ((*poly)[i]).X;
 }
 
-export double clipper_polygon_get_real_y(Polygon* poly, int i) {
+export double clipper_polygon_get_real_y(Path* poly, int i) {
 	return ((*poly)[i]).Y;
 }
 
-export int clipper_polygon_add(Polygon* poly, int64_t x, int64_t y) {
+export int clipper_polygon_add(Path* poly, int64_t x, int64_t y) {
 	try {
 		poly->push_back(IntPoint(x, y));
 		return 0;
@@ -50,9 +51,9 @@ export int clipper_polygon_add(Polygon* poly, int64_t x, int64_t y) {
 	}
 }
 
-export Polygons* clipper_polygon_simplify(Polygon* poly, PolyFillType fill_type) {
+export Paths* clipper_polygon_simplify(Path* poly, PolyFillType fill_type) {
 	try {
-		Polygons* out = new Polygons();
+		Paths* out = new Paths();
 		SimplifyPolygon(*poly, *out, PolyFillType(fill_type));
 		return out;
 	} catch(...) {
@@ -60,9 +61,9 @@ export Polygons* clipper_polygon_simplify(Polygon* poly, PolyFillType fill_type)
 	}
 }
 
-export Polygon* clipper_polygon_clean(Polygon* poly, double distance) {
+export Path* clipper_polygon_clean(Path* poly, double distance) {
 	try {
-		Polygon* out = new Polygon();
+		Path* out = new Path();
 		CleanPolygon(*poly, *out, distance);
 		return out;
 	} catch(...) {
@@ -70,45 +71,45 @@ export Polygon* clipper_polygon_clean(Polygon* poly, double distance) {
 	}
 }
 
-export void clipper_polygon_reverse(Polygon* poly) {
-	ReversePolygon(*poly);
+export void clipper_polygon_reverse(Path* poly) {
+	ReversePath(*poly);
 }
 
-export int clipper_polygon_orientation(Polygon* poly) {
+export int clipper_polygon_orientation(Path* poly) {
 	return Orientation(*poly);
 }
 
-export double clipper_polygon_area(Polygon* poly) {
+export double clipper_polygon_area(Path* poly) {
 	return Area(*poly);
 }
 
 // clipper_polygons class
 
-export Polygons* clipper_polygons_create(int n) {
+export Paths* clipper_polygons_create(int n) {
 	try {
-		return new Polygons(n);
+		return new Paths(n);
 	} catch(...) {
 		return 0;
 	}
 }
 
-export void clipper_polygons_free(Polygons* poly) {
+export void clipper_polygons_free(Paths* poly) {
 	delete poly;
 }
 
-export int clipper_polygons_size(Polygons* poly) {
+export int clipper_polygons_size(Paths* poly) {
 	return poly->size();
 }
 
-export Polygon* clipper_polygons_get(Polygons* poly, int i) {
+export Path* clipper_polygons_get(Paths* poly, int i) {
 	return &((*poly)[i]);
 }
 
-export void clipper_polygons_set(Polygons* poly, int i, Polygon* e) {
+export void clipper_polygons_set(Paths* poly, int i, Path* e) {
 	(*poly)[i] = *e;
 }
 
-export int clipper_polygons_add(Polygons* poly, Polygon* e) {
+export int clipper_polygons_add(Paths* poly, Path* e) {
 	try {
 		poly->push_back(*e);
 		return 0;
@@ -117,9 +118,9 @@ export int clipper_polygons_add(Polygons* poly, Polygon* e) {
 	}
 }
 
-export Polygons* clipper_polygons_simplify(Polygons* poly, PolyFillType fill_type) {
+export Paths* clipper_polygons_simplify(Paths* poly, PolyFillType fill_type) {
 	try {
-		Polygons* out = new Polygons();
+		Paths* out = new Paths();
 		SimplifyPolygons(*poly, *out, PolyFillType(fill_type));
 		return out;
 	} catch(...) {
@@ -127,9 +128,9 @@ export Polygons* clipper_polygons_simplify(Polygons* poly, PolyFillType fill_typ
 	}
 }
 
-export Polygons* clipper_polygons_clean(Polygons* poly, double distance) {
+export Paths* clipper_polygons_clean(Paths* poly, double distance) {
 	try {
-		Polygons* out = new Polygons(poly->size());
+		Paths* out = new Paths(poly->size());
 		CleanPolygons(*poly, *out, distance);
 		return out;
 	} catch(...) {
@@ -137,14 +138,14 @@ export Polygons* clipper_polygons_clean(Polygons* poly, double distance) {
 	}
 }
 
-export void clipper_polygons_reverse(Polygons* poly) {
-	ReversePolygons(*poly);
+export void clipper_polygons_reverse(Paths* poly) {
+	ReversePaths(*poly);
 }
 
-export Polygons* clipper_polygons_offset(Polygons* poly, double delta, JoinType jointype, double miter_limit) {
+export Paths* clipper_polygons_offset(Paths* poly, double delta, JoinType jointype, EndType_ endtype, double miter_limit) {
 	try {
-		Polygons* out = new Polygons();
-		OffsetPolygons(*poly, *out, delta, JoinType(jointype), miter_limit, false);
+		Paths* out = new Paths();
+		OffsetPaths(*poly, *out, delta, JoinType(jointype), EndType_(endtype), miter_limit);
 		return out;
 	} catch(...) {
 		return 0;
@@ -153,7 +154,7 @@ export Polygons* clipper_polygons_offset(Polygons* poly, double delta, JoinType 
 
 // clipper class
 
-export double clipper_tonumber(int64_t n) {
+export double clipper_toreal(int64_t n) {
 	return (double)n;
 }
 
@@ -169,23 +170,23 @@ export void clipper_free(Clipper* clipper) {
 	delete clipper;
 }
 
-export int clipper_add_polygon(Clipper* clipper, Polygon* poly, PolyType poly_type) {
-	clipper->AddPolygon(*poly, PolyType(poly_type));
+export int clipper_add_polygon(Clipper* clipper, Path* poly, PolyType poly_type, bool closed) {
+	clipper->AddPath(*poly, PolyType(poly_type), closed);
 }
 
-export int clipper_add_polygons(Clipper* clipper, Polygons* poly, PolyType poly_type) {
-	clipper->AddPolygons(*poly, PolyType(poly_type));
+export int clipper_add_polygons(Clipper* clipper, Paths* poly, PolyType poly_type, bool closed) {
+	clipper->AddPaths(*poly, PolyType(poly_type), closed);
 }
 
 export void clipper_get_bounds(Clipper* clipper, IntRect* out) {
 	*out = clipper->GetBounds();
 }
 
-export Polygons* clipper_execute(Clipper* clipper, ClipType clipType,
+export Paths* clipper_execute(Clipper* clipper, ClipType clipType,
 									PolyFillType subjFillType,
 									PolyFillType clipFillType) {
 	try {
-		Polygons* solution = new Polygons();
+		Paths* solution = new Paths();
 		clipper->Execute(ClipType(clipType), *solution,
 											PolyFillType(subjFillType),
 											PolyFillType(clipFillType));

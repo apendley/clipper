@@ -31,8 +31,15 @@ typedef enum {
 	clipper_jtMiter
 } clipper_JoinType;
 
-typedef struct clipper_Polygon clipper_polygon;
-typedef struct clipper_Polygons clipper_polygons;
+typedef enum {
+	clipper_etClosed,
+	clipper_etButt,
+	clipper_etSquare,
+	clipper_etRound
+} clipper_EndType_;
+
+typedef struct clipper_Path clipper_polygon;
+typedef struct clipper_Paths clipper_polygons;
 typedef struct clipper_Clipper clipper;
 
 clipper_polygon*  clipper_polygon_create(int);
@@ -59,11 +66,11 @@ clipper_polygons* clipper_polygons_clean       (clipper_polygons*, double);
 void              clipper_polygons_reverse     (clipper_polygons*);
 clipper_polygons* clipper_polygons_offset      (clipper_polygons*, double, clipper_JoinType, double);
 
-double            clipper_tonumber     (int64_t);
+double            clipper_toreal       (int64_t);
 clipper*          clipper_create();
 void              clipper_free         (clipper*);
-int               clipper_add_polygon  (clipper*, clipper_polygon*, clipper_PolyType);
-int               clipper_add_polygons (clipper*, clipper_polygons*, clipper_PolyType);
+int               clipper_add_polygon  (clipper*, clipper_polygon*, clipper_PolyType, bool);
+int               clipper_add_polygons (clipper*, clipper_polygons*, clipper_PolyType, bool);
 void              clipper_get_bounds   (clipper*, clipper_rect*);
 clipper_polygons* clipper_execute      (clipper*, clipper_ClipType,
 																	clipper_PolyFillType,
@@ -92,6 +99,13 @@ local clip_types = {
 	union        = C.clipper_ctUnion,
 	difference   = C.clipper_ctDifference,
 	xor          = C.clipper_ctXor
+}
+
+local end_types = {
+	closed 	= C.clipper_etClosed,
+	butt 	= C.clipper_etButt,
+	square 	= C.clipper_etSquare,
+	round 	= C.clipper_etRound
 }
 
 local polygon_type = ffi.typeof'clipper_polygon*'
@@ -203,8 +217,8 @@ end
 
 local clipper = {} --clipper methods
 
-function clipper.tonumber(n)
-	return C.clipper_tonumber(n)
+function clipper.toreal(n)
+	return C.clipper_toreal(n)
 end
 
 function clipper.new()
@@ -216,21 +230,31 @@ function clipper:free()
 	ffi.gc(self, nil)
 end
 
-local function clipper_add(self, poly, where_flag)
+local function clipper_add(self, poly, where_flag, closed)
+	closed = closed or true
 	if is_polygon(poly) then
-		C.clipper_add_polygon(self, poly, where_flag)
+		C.clipper_add_polygon(self, poly, where_flag, closed)
 	else
-		C.clipper_add_polygons(self, poly, where_flag)
+		C.clipper_add_polygons(self, poly, where_flag, closed)
 	end
 end
 
-function clipper:add_subject(poly) clipper_add(self, poly, C.clipper_ptSubject) end
-function clipper:add_clip(poly) clipper_add(self, poly, C.clipper_ptClip) end
+function clipper:add_subject(poly, closed) clipper_add(self, poly, C.clipper_ptSubject, closed) end
+function clipper:add_clip(poly, closed) clipper_add(self, poly, C.clipper_ptClip, closed) end
 
 function clipper:get_bounds(r)
 	local r = r or ffi.new'clipper_rect'
 	C.clipper_get_bounds(self, r)
 	return r.x1, r.y1, r.x2, r.y2
+end
+
+function clipper:get_bounds_real(r)
+	local r = r or ffi.new'clipper_rect'
+	C.clipper_get_bounds(self, r)
+	return clipper.toreal(r.x1), 
+	       clipper.toreal(r.y1), 
+	       clipper.toreal(r.x2),
+	       clipper.toreal(r.y2)
 end
 
 function clipper:execute(clip_type, subj_fill_type, clip_fill_type, reverse)
@@ -258,7 +282,6 @@ return {
 	new = clipper.new,
 	polygon = polygon.new,
 	polygons = polygons.new,
-	tonumber = clipper.tonumber,	
+	toreal = clipper.toreal,	
 	C = C,
 }
-
