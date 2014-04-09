@@ -217,7 +217,7 @@ end
 
 local clipper = {} --clipper methods
 
-function clipper.toreal(n)
+local function clipper_toreal(n)
 	return C.clipper_toreal(n)
 end
 
@@ -251,10 +251,10 @@ end
 function clipper:get_bounds_real(r)
 	local r = r or ffi.new'clipper_rect'
 	C.clipper_get_bounds(self, r)
-	return clipper.toreal(r.x1), 
-	       clipper.toreal(r.y1), 
-	       clipper.toreal(r.x2),
-	       clipper.toreal(r.y2)
+	return clipper_toreal(r.x1), 
+	       clipper_toreal(r.y1), 
+	       clipper_toreal(r.x2),
+	       clipper_toreal(r.y2)
 end
 
 function clipper:execute(clip_type, subj_fill_type, clip_fill_type, reverse)
@@ -282,6 +282,6 @@ return {
 	new = clipper.new,
 	polygon = polygon.new,
 	polygons = polygons.new,
-	toreal = clipper.toreal,	
+	toreal = clipper_toreal,	
 	C = C,
 }
