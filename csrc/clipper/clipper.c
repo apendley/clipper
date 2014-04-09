@@ -33,6 +33,14 @@ export IntPoint* clipper_polygon_get(Polygon* poly, int i) {
 	return &((*poly)[i]);
 }
 
+export double clipper_polygon_get_real_x(Polygon* poly, int i) {
+	return ((*poly)[i]).X;
+}
+
+export double clipper_polygon_get_real_y(Polygon* poly, int i) {
+	return ((*poly)[i]).Y;
+}
+
 export int clipper_polygon_add(Polygon* poly, int64_t x, int64_t y) {
 	try {
 		poly->push_back(IntPoint(x, y));
@@ -144,6 +152,10 @@ export Polygons* clipper_polygons_offset(Polygons* poly, double delta, JoinType 
 }
 
 // clipper class
+
+export double clipper_tonumber(int64_t n) {
+	return (double)n;
+}
 
 export Clipper* clipper_create() {
 	try {
