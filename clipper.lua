@@ -46,8 +46,6 @@ clipper_polygon*  clipper_polygon_create(int);
 void              clipper_polygon_free        (clipper_polygon*);
 int               clipper_polygon_size        (clipper_polygon*);
 clipper_point*    clipper_polygon_get         (clipper_polygon*, int);
-double            clipper_polygon_get_real_x  (clipper_polygon*, int);
-double            clipper_polygon_get_real_y  (clipper_polygon*, int);
 int               clipper_polygon_add         (clipper_polygon*, int64_t x, int64_t y);
 clipper_polygons* clipper_polygon_simplify    (clipper_polygon*, clipper_PolyFillType);
 clipper_polygon*  clipper_polygon_clean       (clipper_polygon*, double);
@@ -66,7 +64,6 @@ clipper_polygons* clipper_polygons_clean       (clipper_polygons*, double);
 void              clipper_polygons_reverse     (clipper_polygons*);
 clipper_polygons* clipper_polygons_offset      (clipper_polygons*, double, clipper_JoinType, double);
 
-double            clipper_toreal       (int64_t);
 clipper*          clipper_create();
 void              clipper_free         (clipper*);
 int               clipper_add_polygon  (clipper*, clipper_polygon*, clipper_PolyType, bool);
@@ -131,15 +128,15 @@ function polygon:get(i)
 end
 
 function polygon:real(i)
-	return C.clipper_polygon_get_real_x(self, i-1), C.clipper_polygon_get_real_y(self, i-1)
+	return tonumber(self:get(i).x), tonumber(self:get(i).y)
 end
 
 function polygon:real_x(i)
-	return C.clipper_polygon_get_real_x(self, i-1)
+	return tonumber(self:get(i).x)
 end
 
 function polygon:real_y(i)
-	return C.clipper_polygon_get_real_y(self, i-1)
+	return tonumber(self:get(i).y)
 end
 
 function polygon:add(x, y)
@@ -217,10 +214,6 @@ end
 
 local clipper = {} --clipper methods
 
-local function clipper_toreal(n)
-	return C.clipper_toreal(n)
-end
-
 function clipper.new()
 	return ffi.gc(C.clipper_create(), C.clipper_free)
 end
@@ -251,10 +244,10 @@ end
 function clipper:get_bounds_real(r)
 	local r = r or ffi.new'clipper_rect'
 	C.clipper_get_bounds(self, r)
-	return clipper_toreal(r.x1), 
-	       clipper_toreal(r.y1), 
-	       clipper_toreal(r.x2),
-	       clipper_toreal(r.y2)
+	return tonumber(r.x1), 
+	       tonumber(r.y1), 
+	       tonumber(r.x2),
+	       tonumber(r.y2)
 end
 
 function clipper:execute(clip_type, subj_fill_type, clip_fill_type, reverse)
@@ -281,7 +274,6 @@ if not ... then require'clipper_demo' end
 return {
 	new = clipper.new,
 	polygon = polygon.new,
-	polygons = polygons.new,
-	toreal = clipper_toreal,	
+	polygons = polygons.new,	
 	C = C,
 }
